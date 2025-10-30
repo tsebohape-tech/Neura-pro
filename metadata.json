@@ -1,0 +1,7 @@
+{
+  "name": "Neura pro",
+  "description": "An intelligent learning assistant that helps you achieve your educational goals through structured plans and interactive chat sessions. Create subjects, set goals, track your progress, and get personalized guidance from an AI tutor.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

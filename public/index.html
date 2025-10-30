@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neura Typing Demo</title>
+    <!-- Using marked.js from a CDN for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0b0b;
+            --surface-color: #1c1c1c;
+            --text-color: #e0e0e0;
+            --text-muted-color: #888;
+            --accent-color: #6a5acd;
+            --border-color: #333;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        h1 span {
+            font-weight: 300;
+            color: var(--text-muted-color);
+        }
+
+        #chat-output-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #chat-output {
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #chat-output > *:first-child { margin-top: 0; }
+        #chat-output > *:last-child { margin-bottom: 0; }
+        #chat-output h1, #chat-output h2, #chat-output h3 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3em;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+        #chat-output code {
+            background-color: #2d2d2d;
+            padding: .2em .4em;
+            margin: 0;
+            font-size: 85%;
+            border-radius: 6px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        #chat-output pre {
+            background-color: #2d2d2d;
+            padding: 16px;
+            overflow: auto;
+            border-radius: 6px;
+        }
+        #chat-output pre code {
+            padding: 0;
+            background: none;
+        }
+        #chat-output blockquote {
+            padding-left: 1em;
+            color: #aaa;
+            border-left: 0.25em solid var(--border-color);
+            margin-left: 0;
+        }
+        #chat-output table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        #chat-output th, #chat-output td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+        }
+        #chat-output th {
+            background-color: #2d2d2d;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.1em;
+            background-color: var(--accent-color);
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+        
+        .prompt-area {
+            flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        textarea {
+            flex-grow: 1;
+            height: 80px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 16px;
+            resize: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .stream-btn {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .stream-btn:hover { background-color: #5849b3; }
+        .stream-btn:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+
+        .fallback-btn {
+            background-color: #444;
+            color: #ddd;
+        }
+        .fallback-btn:hover { background-color: #555; }
+        .fallback-btn:disabled { background-color: #333; color: #777; cursor: not-allowed; }
+
+        .stop-btn {
+            background-color: #b33;
+            color: white;
+            display: none; /* Hidden by default */
+        }
+        .stop-btn:hover { background-color: #c44; }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted-color);
+            font-size: 12px;
+        }
+
+        .speed-control input[type="range"] {
+            -webkit-appearance: none;
+            width: 120px;
+            height: 5px;
+            background: var(--border-color);
+            border-radius: 5px;
+            outline: none;
+        }
+        .speed-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Neura Typing Demo <span>/ with Gemini API</span></h1>
+        </header>
+
+        <div id="chat-output-wrapper">
+            <div id="chat-output"></div>
+        </div>
+
+        <div class="prompt-area">
+            <textarea id="prompt-input" placeholder="Enter your prompt here... e.g., 'Explain the theory of relativity in simple terms.'"></textarea>
+            <div class="controls">
+                <button id="stream-btn" class="stream-btn">Stream</button>
+                <button id="fallback-btn" class="fallback-btn">Fallback</button>
+                <button id="stop-btn" class="stop-btn">Stop</button>
+            </div>
+        </div>
+        <div class="speed-control">
+            <span>Typing Speed:</span>
+            <input type="range" id="speed-slider" min="1" max="100" value="70">
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const promptInput = document.getElementById('prompt-input');
+        const chatOutput = document.getElementById('chat-output');
+        const streamBtn = document.getElementById('stream-btn');
+        const fallbackBtn = document.getElementById('fallback-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const speedSlider = document.getElementById('speed-slider');
+
+        // State variables
+        let isStreaming = false;
+        let abortController = null;
+        let textBuffer = '';
+        let currentRenderedText = '';
+        let typeAnimationId = null;
+
+        // --- Core Typing Animation Logic ---
+
+        const typeText = () => {
+            if (currentRenderedText.length < textBuffer.length) {
+                const char = textBuffer[currentRenderedText.length];
+                currentRenderedText += char;
+
+                // Render markdown progressively
+                chatOutput.innerHTML = marked.parse(currentRenderedText + '<span class="cursor"></span>');
+                
+                // Scroll to bottom
+                const wrapper = document.getElementById('chat-output-wrapper');
+                wrapper.scrollTop = wrapper.scrollHeight;
+
+                // Calculate delay for next character
+                const baseDelay = 110 - speedSlider.value; // Speed slider controls base delay
+                let punctuationDelay = 0;
+                if (['.', '?', '!', '\n'].includes(char)) {
+                    punctuationDelay = baseDelay * 5; // Longer pause for punctuation
+                } else if ([','].includes(char)) {
+                    punctuationDelay = baseDelay * 2.5;
+                }
+                
+                setTimeout(() => {
+                    typeAnimationId = requestAnimationFrame(typeText);
+                }, baseDelay + punctuationDelay);
+
+            } else {
+                // Animation finished, remove cursor
+                chatOutput.innerHTML = marked.parse(currentRenderedText);
+                isStreaming = false;
+                toggleControls(false);
+                typeAnimationId = null;
+            }
+        };
+
+        const startTypingAnimation = () => {
+            if (!typeAnimationId) {
+                typeAnimationId = requestAnimationFrame(typeText);
+            }
+        };
+
+        const stopTypingAnimation = () => {
+            if (typeAnimationId) {
+                cancelAnimationFrame(typeAnimationId);
+                typeAnimationId = null;
+            }
+        };
+        
+        // --- API Interaction Logic ---
+
+        const handleStream = async () => {
+            const prompt = promptInput.value.trim();
+            if (!prompt || isStreaming) return;
+
+            resetState();
+            toggleControls(true);
+            abortController = new AbortController();
+
+            try {
+                const response = await fetch('/api/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                    signal: abortController.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let accumulatedData = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    accumulatedData += decoder.decode(value, { stream: true });
+                    
+                    // Process SSE messages
+                    const events = accumulatedData.split('\n\n');
+                    accumulatedData = events.pop(); // Keep the last, possibly incomplete, event
+
+                    for (const event of events) {
+                        if (event.startsWith('data: ')) {
+                            const jsonString = event.substring(6);
+                            try {
+                                const data = JSON.parse(jsonString);
+                                if (data.text) {
+                                    textBuffer += data.text;
+                                    startTypingAnimation();
+                                }
+                                if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Streaming failed:', error);
+                    chatOutput.innerHTML += `<p style="color: #ff6b6b;">Error: ${error.message}</p>`;
+                    toggleControls(false);
+                }
+            }
+        };
+
+        const handleFallback = async () => {
+            const prompt = promptInput.value.trim();
+            if (!prompt || isStreaming) return;
+
+            resetState();
+            toggleControls(true);
+            
+            try {
+                const response = await fetch('/api/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                textBuffer = data.text;
+                startTypingAnimation();
+
+            } catch(error) {
+                console.error('Fallback failed:', error);
+                chatOutput.innerHTML += `<p style="color: #ff6b6b;">Error: ${error.message}</p>`;
+                toggleControls(false);
+            }
+        };
+
+        const stopStreaming = () => {
+            if (abortController) {
+                abortController.abort();
+            }
+            stopTypingAnimation();
+            isStreaming = false;
+            // Show partially completed text without cursor
+            chatOutput.innerHTML = marked.parse(currentRenderedText);
+            toggleControls(false);
+        };
+        
+        // --- UI and State Management ---
+
+        const resetState = () => {
+            isStreaming = true;
+            textBuffer = '';
+            currentRenderedText = '';
+            chatOutput.innerHTML = '';
+            stopTypingAnimation();
+        };
+        
+        const toggleControls = (streaming) => {
+            isStreaming = streaming;
+            streamBtn.disabled = streaming;
+            fallbackBtn.disabled = streaming;
+            promptInput.disabled = streaming;
+            stopBtn.style.display = streaming ? 'block' : 'none';
+            streamBtn.style.display = streaming ? 'none' : 'block';
+        };
+
+        // --- Event Listeners ---
+        streamBtn.addEventListener('click', handleStream);
+        fallbackBtn.addEventListener('click', handleFallback);
+        stopBtn.addEventListener('click', stopStreaming);
+        
+    </script>
+</body>
+</html>
