@@ -1,17 +1,22 @@
-
 {
-  "name": "neura-typing-demo",
-  "version": "1.0.0",
-  "description": "A demo of ChatGPT-like streaming text from the Gemini API, proxied through an Express server.",
-  "main": "server.js",
+  "name": "neura-pro",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "author": "Neura AI",
-  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "react": "^19.2.0",
+    "@google/genai": "^1.28.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }
